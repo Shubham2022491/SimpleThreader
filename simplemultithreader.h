@@ -52,10 +52,19 @@ void parallel_for(int low, int high, std::function<void(int)> &&lambda, int numT
         args[i].low=i*chunk; 
         args[i].high=(i+1)*chunk;
         args[i].lambda = lambda;  // Lambda capture by value
-        pthread_create(&tid[i], NULL, thread_func1, &args[i]);
+        if (i == numThreads -1 ){
+            args[i].high = high ;
+        } 
+        if (pthread_create(&tid[i], NULL, thread_func1, &args[i]) != 0) {
+            std::cerr << "Error creating thread " << i << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
     }
     for (int i=0; i<numThreads; i++) {
-        pthread_join(tid[i] , NULL);
+        if (pthread_join(tid[i], NULL) != 0) {
+            std::cerr << "Error joining thread " << i << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -71,10 +80,19 @@ void parallel_for(int low1, int high1, int low2, int high2,std::function<void(in
         args[i].low2 = low2;
         args[i].high2 = high2;
         args[i].lambda = lambda;
-        pthread_create(&tid[i], NULL, thread_func2, &args[i]);
+        if (i == numThreads -1 ) {
+            args[i].high1 = high1;
+        }
+        if (pthread_create(&tid[i], NULL, thread_func2, &args[i]) != 0) {
+            std::cerr << "Error creating thread " << i << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
     }
     for (int i=0; i<numThreads; i++) {
-        pthread_join(tid[i] , NULL);
+        if (pthread_join(tid[i], NULL) != 0) {
+            std::cerr << "Error joining thread " << i << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
     }
 }
 
