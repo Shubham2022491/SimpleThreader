@@ -4,6 +4,7 @@
 #include <functional>
 #include <stdlib.h>
 #include <cstring>
+#include <chrono>
 
 int user_main(int argc, char **argv);
 
@@ -20,10 +21,6 @@ typedef struct {
     int high1,high2;
     std::function<void(int,int)> lambda;
 } thread_args2;
-
-
-
-
 
 void *thread_func1(void *ptr) {
     thread_args1 * t = ((thread_args1 *) ptr);    
@@ -44,10 +41,14 @@ return NULL;
 }
 
 
+
 void parallel_for(int low, int high, std::function<void(int)> &&lambda, int numThreads){
     pthread_t tid[numThreads];
     thread_args1 args[numThreads];
     int chunk = (high-low)/numThreads;
+
+    auto start_time = std::chrono::steady_clock::now();
+
     for (int i=0; i<numThreads; i++) {
         args[i].low=i*chunk; 
         args[i].high=(i+1)*chunk;
@@ -66,14 +67,18 @@ void parallel_for(int low, int high, std::function<void(int)> &&lambda, int numT
             std::exit(EXIT_FAILURE);
         }
     }
-}
+    auto end_time = std::chrono::steady_clock::now();
 
+    std::chrono::duration<double> elapsed_time = end_time - start_time;
+    std::cout << "Execution time: " << elapsed_time.count() << " seconds\n";
+}
 
 void parallel_for(int low1, int high1, int low2, int high2,std::function<void(int, int)> &&lambda, int numThreads){
     pthread_t tid[numThreads];
     thread_args2 args[numThreads];
     int chunk1 = (high1 - low1) / numThreads;
     int chunk2 = (high2 - low2) / numThreads;
+    auto start_time = std::chrono::steady_clock::now();
     for (int i=0; i<numThreads; i++) {
         args[i].low1 = i * chunk1;
         args[i].high1 = (i + 1) * chunk1;
@@ -94,15 +99,15 @@ void parallel_for(int low1, int high1, int low2, int high2,std::function<void(in
             std::exit(EXIT_FAILURE);
         }
     }
+     auto end_time = std::chrono::steady_clock::now();
+
+    std::chrono::duration<double> elapsed_time = end_time - start_time;
+    std::cout << "Execution time: " << elapsed_time.count() << " seconds\n";
 }
 
 int main(int argc, char **argv) {
-  
   int rc = user_main(argc, argv);
- 
-
   return rc;
 }
 
 #define main user_main
-
